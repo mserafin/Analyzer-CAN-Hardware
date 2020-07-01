@@ -1,6 +1,6 @@
 #pragma once
 
-const byte SPI_CS_PIN = 0x0A;
+const byte SPI_CS_PIN = 10;
 
 MCP_CAN CAN(SPI_CS_PIN);
 
@@ -50,7 +50,10 @@ class ConnCAN //SnifferCan
       return CAN.begin(baudrate) == CAN_OK;
     }
 
-    void sendMsg(Frame * frame) {
-      CAN.sendMsgBuf(frame->canId(), frame->isExtended(), frame->dataSize(), frame->data());
+    bool sendMsg(Frame *frame) {
+      return CAN.sendMsgBuf(frame->canId(),
+                            frame->isExtended(),
+                            frame->dataSize(),
+                            frame->data()) == CAN_OK;
     }
 };

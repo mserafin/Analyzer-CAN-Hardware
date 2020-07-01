@@ -11,7 +11,7 @@ struct CANConfig {
   uint8_t  mode      = 0x01;
   uint8_t  protocol  = 0x01;
   uint16_t speed     = 0x10;
-  uint16_t delayScan = 1000;
+  uint16_t delayScan = 500;
   bool     autoScan  = true;
 };
 

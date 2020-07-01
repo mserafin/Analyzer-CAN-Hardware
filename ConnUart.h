@@ -2,7 +2,7 @@
 
 typedef void (*ConnUartConfigCallback)(FrameType type, uint32_t value);
 
-typedef void (*ConnUartDataCallback)(Frame* frame);
+typedef void (*ConnUartDataCallback)(Frame *frame);
 
 class ConnUART //SerialUart
 {
@@ -21,7 +21,7 @@ class ConnUART //SerialUart
     {
       this->configCallback = configCallback;
       this->dataCallback = dataCallback;
-      this->setBaudrate(this->uart->baudrate);
+      this->setBaudRate(this->uart->baudrate);
     }
 
     void watching()
@@ -52,7 +52,7 @@ class ConnUART //SerialUart
       }
     }
 
-    void setBaudrate(uint32_t baudrate) {
+    void setBaudRate(uint32_t baudrate) {
       Serial.begin(baudrate, SERIAL_8N1);
     }
 };

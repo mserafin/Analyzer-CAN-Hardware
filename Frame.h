@@ -98,24 +98,23 @@ class Frame
 
     bool _isValid;
 
-    void configFrame(byte* buffer, byte type) {
+    void configFrame(byte *buffer, byte type) {
       frame.canId = 0;
       frame.dataSize = buffer[1];
       frame.data = ByteUtils::slice(buffer, 2, frame.dataSize);
     }
 
-    void dataStandardFrame(byte* buffer) {
-      frame.dataSize = buffer[3];
-
-      byte *bytes = ByteUtils::slice(buffer, 1, 2);
-      frame.canId = Convert::bytesToInt(bytes, 2);
-      frame.data = ByteUtils::slice(buffer, 4, frame.dataSize);
-
-      delete bytes;
+    void dataStandardFrame(byte *buffer) {
+      frame.isExtended = false;
+      dataFrame(buffer);
     }
 
-    void dataExtendedFrame(byte* buffer) {
+    void dataExtendedFrame(byte *buffer) {
       frame.isExtended = true;
+      dataFrame(buffer);
+    }
+
+    void dataFrame(byte *buffer) {
       frame.dataSize = buffer[5];
 
       byte *bytes = ByteUtils::slice(buffer, 1, 4);
@@ -125,7 +124,7 @@ class Frame
       delete bytes;
     }
 
-    byte calcCRC(byte* buffer) {
+    byte calcCRC(byte *buffer) {
       byte frameSize = getSize(buffer) - 1;;
       byte *frame = ByteUtils::slice(buffer, 0, frameSize);
 
@@ -136,18 +135,18 @@ class Frame
       return crc1 == crc2;
     }
 
-    byte getSize(byte* buffer) {
+    byte getSize(byte *buffer) {
       switch (buffer[0]) {
         case 0x01:
         case 0x02:
         case 0x03: return buffer[1] + 3;
-        case 0x04: return buffer[3] + 5;
+        case 0x04:
         case 0x05: return buffer[5] + 7;
       }
     }
 
   public:
-    Frame(byte* buffer) {
+    Frame(byte *buffer) {
       frame.type = (FrameType)buffer[0];
       if (!this->calcCRC(buffer)) {
         return;

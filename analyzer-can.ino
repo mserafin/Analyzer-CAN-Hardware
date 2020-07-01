@@ -1,4 +1,4 @@
-#include "SPI.h"
+#include <SPI.h>
 #include "mcp_can.h"
 #include "Config.h"
 #include "Convert.h"
@@ -40,7 +40,7 @@ void onConfigChange(FrameType type, uint32_t value)
   switch (type) {
     case CONFIG_UART: {
         configUART.baudrate = value;
-        //serial->setBaudrate(configUART.baudrate);
+        //serial->setBaudRate(configUART.baudrate);
         Serial.print("CONFIG_UART: ");
         Serial.println(configUART.baudrate);
       }
@@ -50,6 +50,9 @@ void onConfigChange(FrameType type, uint32_t value)
       configCAN.protocol = (value >> 24) & 0xF;
       configCAN.speed    = value & 0xFFFF;
 
+      if (searchBaudRate->isEnable()) {
+        searchBaudRate->disable();
+      }
       sniffer->setBaudRate(configCAN.speed);
 
       Serial.print("CONFIG_CAN: mode=");
@@ -70,23 +73,22 @@ void onDataSending(Frame *frame)
 {
   Serial.print("CanId: ");
   Serial.println(frame->canId());
+  //
+  //  Serial.print("DataSize: ");
+  //  Serial.println(frame.dataSize());
+  //
+  //  Serial.print("IsExtended: ");
+  //  Serial.println(frame.isExtended());
+  //
+  //  Serial.print("Data send: ");
+  //  for (byte i = 0, l = frame.dataSize(); i < l; i++)
+  //  {
+  //    Serial.print(frame.data(i));
+  //    Serial.print(",");
+  //  }
+  //  Serial.println();
 
-  Serial.print("DataSize: ");
-  Serial.println(frame->dataSize());
-
-  Serial.print("IsExtended: ");
-  Serial.println(frame->isExtended());
-
-  Serial.print("Data send: ");
-  for (byte i = 0, l = frame->dataSize(); i < l; i++)
-  {
-    Serial.print(frame->data(i));
-    Serial.print(",");
-  }
-  Serial.println();
-
-  //sniffer->sendMsg(frame);
-  //delete frame;
+  sniffer->sendMsg(frame);
 }
 
 void onDataReceived(byte *data, byte dataSize)
