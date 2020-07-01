@@ -1,5 +1,4 @@
 #pragma once
-#include "ByteUtils.h"
 
 enum FrameType
 {

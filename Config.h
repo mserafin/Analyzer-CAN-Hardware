@@ -8,11 +8,11 @@ struct UARTConfig {
 };
 
 struct CANConfig {
-  uint8_t  mode        = 0x01;
-  uint8_t  protocol    = 0x01;
-  uint16_t speed       = 0x10;
-  uint8_t  searchCount = 0x03;
-  bool     autoScan    = true;
+  uint8_t  mode      = 0x01;
+  uint8_t  protocol  = 0x01;
+  uint16_t speed     = 0x10;
+  uint16_t delayScan = 1000;
+  bool     autoScan  = true;
 };
 
 #endif

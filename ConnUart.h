@@ -1,5 +1,4 @@
 #pragma once
-#include "Frame.h"
 
 typedef void (*ConnUartConfigCallback)(FrameType type, uint32_t value);
 
