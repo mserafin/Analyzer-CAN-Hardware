@@ -7,7 +7,7 @@ class BaudRateSearch
   private:
     struct Store {
       bool isSearching = false;
-      uint16_t *delayMillis;
+      uint16_t *intervalMillis;
       uint32_t lastReadMillis = 0L;
     } story;
 
@@ -15,9 +15,9 @@ class BaudRateSearch
     SearchBaudRateCallback baudRateCallback;
 
   public:
-    BaudRateSearch(BaudRateIterator *iterator, uint16_t *delay) {
+    BaudRateSearch(BaudRateIterator *iterator, uint16_t *interval) {
       this->iterator = iterator;
-      this->story.delayMillis = delay;
+      this->story.intervalMillis = interval;
     }
 
     void begin(SearchBaudRateCallback baudRateCallback)
@@ -39,7 +39,7 @@ class BaudRateSearch
     }
 
     void refresh() {
-      if (story.isSearching && DateUtils::isDelaying(story.lastReadMillis, *story.delayMillis)) {
+      if (story.isSearching && DateUtils::isDelaying(story.lastReadMillis, *story.intervalMillis)) {
         BaudRate *baudRate = iterator->next();
         if (baudRate != NULL) {
           baudRateCallback(*baudRate);

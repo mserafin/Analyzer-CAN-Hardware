@@ -57,7 +57,7 @@ class Frame
           return this;
         }
 
-        FrameBuilder *withCanId(unsigned long canId)
+        FrameBuilder *withCanId(uint32_t canId)
         {
           this->canId = canId;
           return this;

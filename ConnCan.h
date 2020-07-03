@@ -4,11 +4,11 @@ const byte SPI_CS_PIN = 10;
 
 MCP_CAN CAN(SPI_CS_PIN);
 
-//enum Mode {
-//  RX     = 0x01,
-//  TX     = 0x02,
-//  DUPLEX = 0x03
-//};
+enum Mode {
+  RX     = 0x01,
+  TX     = 0x02,
+  DUPLEX = 0x03
+};
 
 //enum Protocol {
 //  CAN = 0x01,

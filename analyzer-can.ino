@@ -9,17 +9,20 @@
 #include "BaudRateIterator.h" //CANBaudRateIterator
 #include "BaudRateSearch.h"   //CANBaudRateSearch
 #include "ConnCan.h"          //CANSniffer
+#include "Response.h"
 
 UARTConfig configUART;
 CANConfig configCAN;
 
-ConnUART *serial    = new ConnUART(&configUART);
+ConnUART *serial    = new ConnUART(&configUART); //request
 ConnCAN  *sniffer   = new ConnCAN();
-BaudRateSearch *searchBaudRate = new BaudRateSearch(new BaudRateIterator(), &configCAN.delayScan);
+Response *response = new Response(&configUART.intervalResponse);
+BaudRateSearch *searchBaudRate = new BaudRateSearch(new BaudRateIterator(), &configCAN.intervalScan);
 
 void setup() {
   serial->begin(onConfigChange, onDataSending);
   sniffer->begin(onDataReceived);
+  response->begin(onDataResponse);
   searchBaudRate->begin(onBaudRateChange);
 
   if (configCAN.autoScan) {
@@ -32,6 +35,7 @@ void setup() {
 void loop() {
   serial->watching();
   sniffer->refresh();
+  response->refresh();
   searchBaudRate->refresh();
 }
 
@@ -71,6 +75,11 @@ void onConfigChange(FrameType type, uint32_t value)
 
 void onDataSending(Frame *frame)
 {
+  if (!checkAnalyzerMode(configCAN.mode, Mode::TX))
+  {
+    return;
+  }
+
   Serial.print("CanId: ");
   Serial.println(frame->canId());
   //
@@ -97,13 +106,34 @@ void onDataReceived(byte *data, byte dataSize)
     searchBaudRate->disable();
   }
 
-  Serial.print("Data received: ");
-  for (byte i = 0; i < dataSize; i++)
+  if (checkAnalyzerMode(configCAN.mode, Mode::RX))
   {
-    Serial.print(data[i]);
-    Serial.print(",");
+    //    Serial.println("received: ");
+    //    for (byte j = 0; j < dataSize; j++)
+    //    {
+    //      Serial.print(data[j]);
+    //      Serial.print(",");
+    //    }
+    //    Serial.flush();
+
+    response->append(data, dataSize);
   }
-  Serial.println();
+}
+
+void onDataResponse(Message *buffer, int_res_index bufferSize) {
+  Serial.println("sending: ");
+
+  for (byte i = 0; i < bufferSize; i++)
+  {
+    Message m = buffer[i];
+    //    Serial.write(m.data, m.dataSize);
+    for (byte j = 0; j < m.dataSize; j++)
+    {
+      Serial.print(m.data[j]);
+      Serial.print(",");
+    }
+    Serial.flush();
+  }
 }
 
 void onBaudRateChange(BaudRate baudrate)
@@ -113,4 +143,8 @@ void onBaudRateChange(BaudRate baudrate)
     sniffer->setBaudRate(baudrate.speed);
   }
   Serial.println(baudrate.name);
+}
+
+bool checkAnalyzerMode(byte pattern, Mode mode) {
+  return (pattern & mode) == mode;
 }
