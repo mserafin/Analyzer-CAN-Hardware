@@ -73,7 +73,7 @@ class Frame
         byte* build()
         {
           byte bufferCursor = 0;
-          byte bufferSize = 15; //TODO: value to global constant
+          byte bufferSize = FRAME_LENGTH;
           byte* buffer = new byte[bufferSize];
 
           this->fillType(buffer, &bufferCursor);

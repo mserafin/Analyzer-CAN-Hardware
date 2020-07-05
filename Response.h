@@ -31,7 +31,7 @@ class Response
     }
 
     void begin(ResponseSendDataCallback sendDataCallback) {
-      buffer.data = new byte[uart->responseBufferSize * uart->frameLength];
+      buffer.data = new byte[uart->responseBufferSize * FRAME_LENGTH];
       this->sendDataCallback = sendDataCallback;
     }
 
@@ -57,7 +57,7 @@ class Response
     }
 
     uint16_t currentCountFrames() {
-      return (buffer.cursor / uart->frameLength);
+      return (buffer.cursor / FRAME_LENGTH);
     }
 
     uint16_t lastCountFrames() {

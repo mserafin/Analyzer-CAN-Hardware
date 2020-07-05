@@ -1,36 +1,36 @@
 #pragma once
 
-typedef void (*ConnUartConfigCallback)(const FrameType type, const uint32_t value);
+typedef void (*RequestConfigCallback)(const FrameType type, const uint32_t value);
 
-typedef void (*ConnUartDataCallback)(const Frame* frame);
+typedef void (*RequestDataCallback)(const Frame* frame);
 
-class ConnUART //SerialUart
+class Request
 {
   private:
     UARTConfig* uart;
-    ConnUartConfigCallback configCallback;
-    ConnUartDataCallback dataCallback;
+    RequestConfigCallback configCallback;
+    RequestDataCallback dataCallback;
 
   public:
-    ConnUART(UARTConfig* uart) {
+    Request(UARTConfig* uart) {
       this->uart = uart;
     }
 
-    void begin(ConnUartConfigCallback configCallback,
-               ConnUartDataCallback dataCallback)
+    void begin(RequestConfigCallback configCallback,
+               RequestDataCallback dataCallback)
     {
       this->configCallback = configCallback;
       this->dataCallback = dataCallback;
       this->setBaudRate(this->uart->baudrate);
     }
 
-    void watching()
+    void refresh()
     {
       if (Serial.available())
       {
-        byte buffer[this->uart->frameLength];
+        byte buffer[FRAME_LENGTH];
         Serial.setTimeout(this->uart->maxTimeOut);
-        Serial.readBytes(buffer, this->uart->frameLength);
+        Serial.readBytes(buffer, FRAME_LENGTH);
 
         Frame *frame = Frame::builder()->with(buffer);
 

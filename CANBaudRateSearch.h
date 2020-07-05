@@ -1,8 +1,8 @@
 #pragma once
 
-typedef void (*SearchBaudRateCallback)(BaudRate baudRate);
+typedef void (*CANBaudRateSearchCallback)(BaudRate baudRate);
 
-class BaudRateSearch
+class CANBaudRateSearch
 {
   private:
     struct Store {
@@ -11,17 +11,16 @@ class BaudRateSearch
       uint32_t lastReadMillis = 0L;
     } story;
 
-    BaudRateIterator *iterator;
-    SearchBaudRateCallback baudRateCallback;
+    CANBaudRateIterator* iterator;
+    CANBaudRateSearchCallback baudRateCallback;
 
   public:
-    BaudRateSearch(BaudRateIterator *iterator, uint16_t *interval) {
+    CANBaudRateSearch(CANBaudRateIterator* iterator, uint16_t* interval) {
       this->iterator = iterator;
       this->story.intervalMillis = interval;
     }
 
-    void begin(SearchBaudRateCallback baudRateCallback)
-    {
+    void begin(CANBaudRateSearchCallback baudRateCallback) {
       this->baudRateCallback = baudRateCallback;
     }
 
@@ -52,7 +51,7 @@ class BaudRateSearch
       }
     }
 
-    ~BaudRateSearch() {
+    ~CANBaudRateSearch() {
       delete iterator;
     }
 };

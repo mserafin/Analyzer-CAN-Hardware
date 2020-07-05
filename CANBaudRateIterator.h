@@ -7,7 +7,7 @@ struct BaudRate {
   String name;
 };
 
-class BaudRateIterator
+class CANBaudRateIterator
 {
   private:
     struct BaudRate baudRate[BAUD_RATE_SIZE] =
@@ -34,7 +34,7 @@ class BaudRateIterator
     uint16_t index = 0;
 
   public:
-    BaudRate *next() {
+    BaudRate* next() {
       if (!hasNext()) {
         return nullptr;
       }
@@ -49,7 +49,7 @@ class BaudRateIterator
       index = 0;
     }
 
-    BaudRate *current() {
+    BaudRate* current() {
       return &baudRate[index];
     }
 };

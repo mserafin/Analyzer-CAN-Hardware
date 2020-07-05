@@ -4,9 +4,8 @@
 struct UARTConfig {
   uint32_t baudrate           = 115200;
   uint8_t  maxTimeOut         = 10;
-  uint16_t frameLength        = 15;
-  uint16_t responseInterval   = 5000;
-  uint16_t responseBufferSize = 50;
+  uint16_t responseInterval   = 1000;
+  uint16_t responseBufferSize = 15;
 };
 
 struct CANConfig {
