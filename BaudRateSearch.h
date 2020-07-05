@@ -41,7 +41,7 @@ class BaudRateSearch
     void refresh() {
       if (story.isSearching && DateUtils::isDelaying(story.lastReadMillis, *story.intervalMillis)) {
         BaudRate *baudRate = iterator->next();
-        if (baudRate != NULL) {
+        if (baudRate) {
           baudRateCallback(*baudRate);
           story.lastReadMillis = DateUtils::now();
         } else {

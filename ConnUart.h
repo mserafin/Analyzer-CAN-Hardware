@@ -1,8 +1,8 @@
 #pragma once
 
-typedef void (*ConnUartConfigCallback)(FrameType type, uint32_t value);
+typedef void (*ConnUartConfigCallback)(const FrameType type, const uint32_t value);
 
-typedef void (*ConnUartDataCallback)(Frame *frame);
+typedef void (*ConnUartDataCallback)(const Frame* frame);
 
 class ConnUART //SerialUart
 {
@@ -28,9 +28,9 @@ class ConnUART //SerialUart
     {
       if (Serial.available())
       {
-        byte buffer[this->uart->maxFrameSize];
+        byte buffer[this->uart->frameLength];
         Serial.setTimeout(this->uart->maxTimeOut);
-        Serial.readBytes(buffer, this->uart->maxFrameSize);
+        Serial.readBytes(buffer, this->uart->frameLength);
 
         Frame *frame = Frame::builder()->with(buffer);
 

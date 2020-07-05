@@ -14,67 +14,67 @@ class Frame
     class FrameBuilder
     {
       private:
-        byte type;
-        byte *data;
-        byte dataSize;
-        uint32_t canId;
+        byte type = 0;
+        byte* data = nullptr;
+        byte dataSize = 0;
+        uint32_t canId = 0L;
 
-        void fillType(byte *buffer, byte *cursor) {
-          buffer[*cursor] = this->type;
+        void fillType(byte* buffer, byte* cursor) {
+          *(buffer + (*cursor)++) = this->type;
         }
 
-        void fillCanId(byte *buffer, byte *cursor) {
-          byte *data = Convert::intToBytes(this->canId);
+        void fillCanId(byte* buffer, byte* cursor) {
+          byte* data = Convert::intToBytes(this->canId);
           for (byte i = 0; i < 4; i++) {
-            buffer[*cursor += 1] = data[i];
+            *(buffer + (*cursor)++) = *(data + i);
           }
-          delete data;
+          delete[] data;
         }
 
-        void fillDataSize(byte *buffer, byte *cursor) {
-          buffer[*cursor += 1] = this->dataSize;
+        void fillDataSize(byte* buffer, byte* cursor) {
+          *(buffer + (*cursor)++) = this->dataSize;
         }
 
-        void fillData(byte *buffer, byte *cursor) {
+        void fillData(byte* buffer, byte* cursor) {
           for (byte i = 0, l = this->dataSize; i < l; i++) {
-            buffer[*cursor += 1] = this->data[i];
+            *(buffer + (*cursor)++) = *(this->data + i);
           }
         }
 
-        void fillCrc(byte *buffer, byte bufferSize) {
+        void fillCrc(byte* buffer, byte bufferSize) {
           buffer[bufferSize] = ByteUtils::crc(buffer, bufferSize);
         }
 
       public:
-        Frame *with(byte *data)
+        Frame* with(byte* data)
         {
           delete this;
           return new Frame(data);
         }
 
-        FrameBuilder *withType(byte type) {
+        FrameBuilder* withType(byte type) {
           this->type = type;
           return this;
         }
 
-        FrameBuilder *withCanId(uint32_t canId)
+        FrameBuilder* withCanId(uint32_t canId)
         {
           this->canId = canId;
           return this;
         }
 
-        FrameBuilder *withData(byte *data, byte dataSize)
+        FrameBuilder* withData(byte* data, byte dataSize)
         {
           this->data = data;
           this->dataSize = dataSize;
           return this;
         }
 
-        byte *build()
+        byte* build()
         {
           byte bufferCursor = 0;
-          byte bufferSize = 15;
-          byte *buffer = new byte[bufferSize];
+          byte bufferSize = 15; //TODO: value to global constant
+          byte* buffer = new byte[bufferSize];
 
           this->fillType(buffer, &bufferCursor);
           this->fillCanId(buffer, &bufferCursor);
@@ -98,44 +98,44 @@ class Frame
 
     bool _isValid;
 
-    void configFrame(byte *buffer, byte type) {
+    void configFrame(byte* buffer, byte type) {
       frame.canId = 0;
       frame.dataSize = buffer[1];
       frame.data = ByteUtils::slice(buffer, 2, frame.dataSize);
     }
 
-    void dataStandardFrame(byte *buffer) {
+    void dataStandardFrame(byte* buffer) {
       frame.isExtended = false;
       dataFrame(buffer);
     }
 
-    void dataExtendedFrame(byte *buffer) {
+    void dataExtendedFrame(byte* buffer) {
       frame.isExtended = true;
       dataFrame(buffer);
     }
 
-    void dataFrame(byte *buffer) {
+    void dataFrame(byte* buffer) {
       frame.dataSize = buffer[5];
 
-      byte *bytes = ByteUtils::slice(buffer, 1, 4);
+      byte* bytes = ByteUtils::slice(buffer, 1, 4);
       frame.canId = Convert::bytesToInt(bytes, 4);
       frame.data = ByteUtils::slice(buffer, 6, frame.dataSize);
 
-      delete bytes;
+      delete[] bytes;
     }
 
-    byte calcCRC(byte *buffer) {
+    byte calcCRC(byte* buffer) {
       byte frameSize = getSize(buffer) - 1;;
-      byte *frame = ByteUtils::slice(buffer, 0, frameSize);
+      byte* frame = ByteUtils::slice(buffer, 0, frameSize);
 
       byte crc1 = ByteUtils::crc(frame, frameSize);
       byte crc2 = buffer[frameSize];
 
-      delete frame;
+      delete[] frame;
       return crc1 == crc2;
     }
 
-    byte getSize(byte *buffer) {
+    byte getSize(byte* buffer) {
       switch (buffer[0]) {
         case 0x01:
         case 0x02:
@@ -146,7 +146,7 @@ class Frame
     }
 
   public:
-    Frame(byte *buffer) {
+    Frame(byte* buffer) {
       frame.type = (FrameType)buffer[0];
       if (!this->calcCRC(buffer)) {
         return;

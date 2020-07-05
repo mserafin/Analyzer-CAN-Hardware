@@ -15,7 +15,7 @@ enum Mode {
 //  OBD = 0x02
 //};
 
-typedef void (*ConnCanDataCallback)(byte *data, byte dataSize);
+typedef void (*ConnCanDataCallback)(const byte *data, const byte dataSize);
 
 class ConnCAN //SnifferCan
 {
@@ -42,7 +42,7 @@ class ConnCAN //SnifferCan
                       ->build();
 
         this->dataCallback(frame, 15);
-        delete frame;
+        delete[] frame;
       }
     }
 
@@ -50,7 +50,7 @@ class ConnCAN //SnifferCan
       return CAN.begin(baudrate) == CAN_OK;
     }
 
-    bool sendMsg(Frame *frame) {
+    bool sendMsg(const Frame *frame) {
       return CAN.sendMsgBuf(frame->canId(),
                             frame->isExtended(),
                             frame->dataSize(),

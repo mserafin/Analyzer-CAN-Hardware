@@ -14,10 +14,10 @@
 UARTConfig configUART;
 CANConfig configCAN;
 
-ConnUART *serial    = new ConnUART(&configUART); //request
-ConnCAN  *sniffer   = new ConnCAN();
-Response *response = new Response(&configUART.intervalResponse);
-BaudRateSearch *searchBaudRate = new BaudRateSearch(new BaudRateIterator(), &configCAN.intervalScan);
+ConnUART* serial    = new ConnUART(&configUART); //request
+ConnCAN* sniffer   = new ConnCAN();
+Response* response = new Response(&configUART);
+BaudRateSearch* searchBaudRate = new BaudRateSearch(new BaudRateIterator(), &configCAN.scanInterval);
 
 void setup() {
   serial->begin(onConfigChange, onDataSending);
@@ -25,10 +25,10 @@ void setup() {
   response->begin(onDataResponse);
   searchBaudRate->begin(onBaudRateChange);
 
-  if (configCAN.autoScan) {
+  if (configCAN.scanEnable) {
     searchBaudRate->enable();
   } else {
-    sniffer->setBaudRate(configCAN.speed);
+    sniffer->setBaudRate(configCAN.baudrate);
   }
 }
 
@@ -39,12 +39,12 @@ void loop() {
   searchBaudRate->refresh();
 }
 
-void onConfigChange(FrameType type, uint32_t value)
+void onConfigChange(const FrameType type, const uint32_t value)
 {
   switch (type) {
     case CONFIG_UART: {
         configUART.baudrate = value;
-        //serial->setBaudRate(configUART.baudrate);
+        serial->setBaudRate(configUART.baudrate);
         Serial.print("CONFIG_UART: ");
         Serial.println(configUART.baudrate);
       }
@@ -52,19 +52,19 @@ void onConfigChange(FrameType type, uint32_t value)
     case CONFIG_CAN:
       configCAN.mode     = (value >> 28) & 0xF;
       configCAN.protocol = (value >> 24) & 0xF;
-      configCAN.speed    = value & 0xFFFF;
+      configCAN.baudrate    = value & 0xFFFF;
 
       if (searchBaudRate->isEnable()) {
         searchBaudRate->disable();
       }
-      sniffer->setBaudRate(configCAN.speed);
+      sniffer->setBaudRate(configCAN.baudrate);
 
       Serial.print("CONFIG_CAN: mode=");
       Serial.print(configCAN.mode);
       Serial.print(", protocol=");
       Serial.print(configCAN.protocol);
       Serial.print(", speed=");
-      Serial.println(configCAN.speed);
+      Serial.println(configCAN.baudrate);
       break;
     case SYNC_TIME:
       Serial.print("SYNC_TIME: ");
@@ -73,10 +73,9 @@ void onConfigChange(FrameType type, uint32_t value)
   }
 }
 
-void onDataSending(Frame *frame)
+void onDataSending(const Frame* frame)
 {
-  if (!checkAnalyzerMode(configCAN.mode, Mode::TX))
-  {
+  if (!checkAnalyzerMode(configCAN.mode, Mode::TX)) {
     return;
   }
 
@@ -100,46 +99,36 @@ void onDataSending(Frame *frame)
   sniffer->sendMsg(frame);
 }
 
-void onDataReceived(byte *data, byte dataSize)
+void onDataReceived(const byte* frame, const byte frameSize)
 {
   if (searchBaudRate->isEnable()) {
     searchBaudRate->disable();
   }
 
-  if (checkAnalyzerMode(configCAN.mode, Mode::RX))
-  {
-    //    Serial.println("received: ");
-    //    for (byte j = 0; j < dataSize; j++)
-    //    {
-    //      Serial.print(data[j]);
-    //      Serial.print(",");
-    //    }
-    //    Serial.flush();
-
-    response->append(data, dataSize);
+  if (checkAnalyzerMode(configCAN.mode, Mode::RX)) {
+    response->append(frame, frameSize);
   }
 }
 
-void onDataResponse(Message *buffer, int_res_index bufferSize) {
-  Serial.println("sending: ");
+void onDataResponse(const byte* buffer, const uint16_t bufferSize) {
+  //  Serial.write(buffer, bufferSize);
+
+  Serial.print("sending: ");
+  Serial.print(response->lastCountFrames());
+  Serial.print(" size: ");
+  Serial.println(bufferSize);
 
   for (byte i = 0; i < bufferSize; i++)
   {
-    Message m = buffer[i];
-    //    Serial.write(m.data, m.dataSize);
-    for (byte j = 0; j < m.dataSize; j++)
-    {
-      Serial.print(m.data[j]);
-      Serial.print(",");
-    }
-    Serial.flush();
+    Serial.print(buffer[i]);
+    Serial.print(",");
   }
 }
 
 void onBaudRateChange(BaudRate baudrate)
 {
   if (baudrate.speed > 0) {
-    configCAN.speed = baudrate.speed;
+    configCAN.baudrate = baudrate.speed;
     sniffer->setBaudRate(baudrate.speed);
   }
   Serial.println(baudrate.name);

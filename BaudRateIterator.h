@@ -36,7 +36,7 @@ class BaudRateIterator
   public:
     BaudRate *next() {
       if (!hasNext()) {
-        return NULL;
+        return nullptr;
       }
       return &baudRate[index++];
     }

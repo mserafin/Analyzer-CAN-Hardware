@@ -1,66 +1,70 @@
 #pragma once
 
-struct Message {
-  byte *data;
-  byte dataSize;
-};
-
-typedef uint16_t int_res_index;
-typedef void (*ResponseDataCallback)(Message *buffer, int_res_index bufferSize);
-
-const int_res_index RESPONSE_BUFFER_SIZE = 100;
+typedef void (*ResponseSendDataCallback)(const byte* buffer, const uint16_t bufferSize);
 
 class Response
 {
   private:
-    ResponseDataCallback dataCallback;
+    UARTConfig* uart;
+    ResponseSendDataCallback sendDataCallback;
 
-    Message *messages = new Message[RESPONSE_BUFFER_SIZE];
-    int_res_index index = 0;
+    uint16_t lastCount = 0;
+    uint32_t lastSend  = 0L;
 
-    struct Sender {
-      uint16_t *intervalMillis;
-      uint32_t lastReadMillis = 0L;
-    } sender;
-
-    void clearBuffer() {
-      if (count() > 0) {
-        //        for (int_res_index i = 0, l = count(); i < l; i++) {
-        //          delete messages[i].data;
-        //        }
-        index = 0;
+    struct Buffer {
+      byte* data = nullptr;
+      uint16_t cursor = 0;
+      void clear() {
+        cursor = 0;
       }
-    }
+      ~Buffer() {
+        if (data) {
+          delete[] data;
+          data = nullptr;
+        }
+      }
+    } buffer;
 
   public:
-    Response(uint16_t *interval) {
-      sender.intervalMillis = interval;
+    Response(UARTConfig* uart) {
+      this->uart = uart;
     }
 
-    void begin(ResponseDataCallback dataCallback) {
-      this->dataCallback = dataCallback;
-      clearBuffer();
+    void begin(ResponseSendDataCallback sendDataCallback) {
+      buffer.data = new byte[uart->responseBufferSize * uart->frameLength];
+      this->sendDataCallback = sendDataCallback;
     }
 
     void refresh() {
-      if (count() > 0 && (!hasNext() || DateUtils::isDelaying(sender.lastReadMillis, *sender.intervalMillis))) {
-        dataCallback(messages, count());
-        clearBuffer();
-        sender.lastReadMillis = DateUtils::now();
+      if (currentCountFrames() > 0 && (!hasNext() || DateUtils::isDelaying(lastSend, uart->responseInterval))) {
+        lastCount = currentCountFrames();
+        sendDataCallback(buffer.data, buffer.cursor);
+        buffer.clear();
+        lastSend = DateUtils::now();
       }
     }
 
-    void append(byte *data, byte dataSize) {
+    void append(const byte* frame, const byte frameSize) {
       if (hasNext()) {
-        messages[index++] = {data, dataSize};
+        for (byte i = 0; i < frameSize; i++) {
+          *(buffer.data + (buffer.cursor++)) = *(frame++);
+        }
       }
     }
 
     bool hasNext() {
-      return index < RESPONSE_BUFFER_SIZE;
+      return currentCountFrames() < uart->responseBufferSize;
     }
 
-    int_res_index count() {
-      return index;
+    uint16_t currentCountFrames() {
+      return (buffer.cursor / uart->frameLength);
+    }
+
+    uint16_t lastCountFrames() {
+      return lastCount;
+    }
+
+    ~Response() {
+      buffer.~Buffer();
     }
 };
