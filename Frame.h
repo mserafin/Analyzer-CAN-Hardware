@@ -19,8 +19,9 @@ class Frame
         byte dataSize = 0;
         uint32_t canId = 0L;
 
-        void fillType(byte* buffer, byte* cursor) {
-          *(buffer + (*cursor)++) = this->type;
+        void fillHeader(byte* buffer, byte* cursor) {
+          *(buffer + (*cursor)++) = 0xAA;
+          *(buffer + (*cursor)++) = 0x55;
         }
 
         void fillCanId(byte* buffer, byte* cursor) {
@@ -52,11 +53,6 @@ class Frame
           return new Frame(data);
         }
 
-        FrameBuilder* withType(byte type) {
-          this->type = type;
-          return this;
-        }
-
         FrameBuilder* withCanId(uint32_t canId)
         {
           this->canId = canId;
@@ -76,7 +72,7 @@ class Frame
           byte bufferSize = FRAME_LENGTH;
           byte* buffer = new byte[bufferSize];
 
-          this->fillType(buffer, &bufferCursor);
+          this->fillHeader(buffer, &bufferCursor);
           this->fillCanId(buffer, &bufferCursor);
           this->fillDataSize(buffer, &bufferCursor);
           this->fillData(buffer, &bufferCursor);

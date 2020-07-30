@@ -35,7 +35,6 @@ class CANSniffer : private MCP_CAN
         readMsgBuf(&size, buffer);
 
         byte* frame = Frame::builder()
-                      ->withType(FRAME_EXTENDED)
                       ->withCanId(getCanId())
                       ->withData(buffer, size)
                       ->build();
